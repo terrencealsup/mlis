@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=32
+#SBATCH --ntasks-per-node=16
 #SBATCH --cpus-per-task=1
-#SBATCH --time=4:00:00
-#SBATCH --mem=8GB
+#SBATCH --time=8:00:00
+#SBATCH --mem=4GB
 #SBATCH --job-name=ce
 #SBATCH --output=ce.out
 
