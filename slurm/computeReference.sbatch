@@ -10,8 +10,8 @@
 
 module purge
 
-module load matlab 2022b
-
 cd /scratch/taa357/mlis/
+
+module load matlab 2022b
 
 matlab -nodisplay -nosplash -nodesktop -r "run('computeReference.m');exit;"
