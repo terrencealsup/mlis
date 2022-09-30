@@ -33,6 +33,7 @@ classdef probObjWeibull
             parmHat = wblfit(x(I == 1, :), [], [], w(I == 1, :));
             obj.alpha = parmHat(1);
             obj.beta = parmHat(2);
+            %obj.beta = min(parmHat(2), 10);
             learnStatus = 1;
         end
     end

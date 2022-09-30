@@ -68,7 +68,7 @@ for i=1:length(gmPrev.probCell)
         beta = gmPrev.probCell{i}.beta;
         % Mean and variance of a uniform distribution
         mu = 0.5*(alpha + beta);
-        sigma = (beta - alpha)^2/12; 
+        sigma = 2*(beta - alpha)^2/12; 
         gmPrev.probCell{i} = probObjGaussian(mu, sigma, 1);
     end
 end
