@@ -3,7 +3,7 @@ clear all; close all;
 addpath(genpath('FOM/'));
 
 level = 4;
-M = 1e+5;
+M = 1e+3;
 Y = drawSamples(M);
 o = zeros(M, 1);
 parfor i=1:M

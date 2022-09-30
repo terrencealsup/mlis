@@ -4,8 +4,8 @@ classdef probObjUniform
     
     properties
         alpha = 0; % left endpoint
-        beta = 0; % right endpoint
-        dim = 0;
+        beta = 1; % right endpoint
+        dim = 1;
     end
     
     methods
@@ -28,10 +28,6 @@ classdef probObjUniform
         
         function print(obj)
             disp(['alpha (left) = ', num2str(obj.alpha), ', beta (right) = ', num2str(obj.beta)]);
-        end
-        
-        function [obj, learnStatus] = cefit(obj, x, w, I, minShrink)
-            [obj.gm, learnStatus] = obj.gm.cefit(x, w, I, minShrink);
         end
     end
     

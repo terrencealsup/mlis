@@ -16,21 +16,28 @@ function [ PfCell, VarCell, gmCell, costs, PfTrueCell, VarTrueCell, tCell ] = ML
 %   PfTrueCell      ...     list of est fail prob with t
 %   VarTrueCell     ....    list of var with t
 
-%addpath(genpath('~/uni/apro/mlib'));
-%addpath(genpath('FOM/'));
-%addpath('../code');
+
+
+% Load the model timings
 tt = load('results/timeMes.mat');
 
-%% parameters and models
+% Set to 1 to print updates, 0 otherwise
 DEBUG = 1;
+
+% Number of models
 nrModels = length(modelList);
-% create models
+
 MYDEBUG('Construct models', DEBUG);
-mmm = cell(length(modelList), 1); %constructModels(modelList);
-%selI = selectModels(tt.mCell, modelList);
+
+% Cell to store models
+mmm = cell(length(modelList), 1);
+
+% Check which models were selected
 selI = zeros(length(modelList), 1);
 for i=1:length(modelList)
+    % The forward model at level modelList{i}{1}
     mmm{i} = modelList{i}{2};
+    
     for j=1:length(tt.mCell)
         if(tt.mCell{j}{2}(1) == modelList{i}{1})
             selI(i, 1) = j;
@@ -39,8 +46,9 @@ for i=1:length(modelList)
 end
 MYDEBUG(['Selected models ', num2str(selI')], DEBUG);
 
-%% construct steps in CE
+% Get the nominal density
 [~, gmNominal] = drawSamples(1);
+
 gmCell = cell(nrModels, 1);
 tCell = cell(nrModels, 1);
 PfCell = cell(nrModels, 1);
@@ -49,26 +57,54 @@ VarCell = cell(nrModels, 1);
 VarTrueCell = cell(nrModels, 1);
 costs = zeros(nrModels, 1);
 gIter = 0;
+
+% Set the initial biasing density to the nominal density
 gmPrev = gmNominal;
+% Check if there is a uniform density in one of the dimensions and
+% replace with Gaussian for the biasing density
+for i=1:length(gmPrev.probCell)
+    if isa(gmPrev.probCell{i}, 'probObjUniform')
+        alpha = gmPrev.probCell{i}.alpha;
+        beta = gmPrev.probCell{i}.beta;
+        % Mean and variance of a uniform distribution
+        mu = 0.5*(alpha + beta);
+        sigma = (beta - alpha)^2/12; 
+        gmPrev.probCell{i} = probObjGaussian(mu, sigma, 1);
+    end
+end
+
+
 oldDensityFlag = 0;
 tglobal = tic;
+
+% Loop over all models
 for modelIter=1:length(mmm)
+    % Print time so far
     MYDEBUG(['=> ', num2str(toc(tglobal))], DEBUG);
     tglobal = tic;
+    % Print current model
     MYDEBUG(['Model ', num2str(modelIter)], DEBUG);
+    
+    % Track iterations within each level
     stepsIter=1;
     while 1
+        % Print current step within level
         MYDEBUG(['   Step ', num2str(stepsIter)], DEBUG)
-        gIter = gIter + 1; % global iterations
+        % Track global iterations
+        gIter = gIter + 1;
         
-        X = gmPrev.random(M); % draw samples
-        w = gmNominal.pdf(X)./gmPrev.pdf(X); % weights
-        S = mmm{modelIter}(X); % evaluate model
+        % Draw samples from current biasing density
+        X = gmPrev.random(M);
+        % Weight samples according to nominal density
+        w = gmNominal.pdf(X)./gmPrev.pdf(X);
+        % Evaluate current model at samples
+        S = mmm{modelIter}(X);
         
-        % compute quantile
+        % Compute quantile
         if(oldDensityFlag && stepsIter > 1)
             tCell{modelIter}(stepsIter) = tCell{modelIter}(stepsIter - 2);
         else
+            % Determine rho quantile of the model output samples
             tCell{modelIter}(stepsIter) = quantile(S, rho);
         end
         
@@ -102,17 +138,31 @@ for modelIter=1:length(mmm)
         % reset oldDensityFlag
         oldDensityFlag = 0;
         
-        % compute indicator
+        % Compute indicator with current threshold
         I = limitg(S, tCell{modelIter}(stepsIter));
+        
+        % Compute indicator with target threshold
         Itrue = limitg(S, t);
+        
+        % Print number of model outputs above current threshold
         MYDEBUG(['      Have ', num2str(sum(I)), ' components left'], DEBUG);
+        
+        % Print number of model outputs above target threshold
         MYDEBUG(['      Have ', num2str(sum(Itrue)), ' true (w.r.t. t) components left'], DEBUG);
         
-        % derive estimate on this level
+        % Get the current estimate for the threshold at the current step
         PfCell{modelIter}(stepsIter) = mean(I.*w);
+        
+        % Get the current estimate for the target threshold
         PfTrueCell{modelIter}(stepsIter) = mean(Itrue.*w);
+        
+        % Get the variance with the current threshold
         VarCell{modelIter}(stepsIter) = var(I.*w);
+        
+        % Get the variance with the target threshold
         VarTrueCell{modelIter}(stepsIter) = var(Itrue.*w);
+        
+        % Print results
         MYDEBUG(['      Pf = ', num2str(PfCell{modelIter}(stepsIter)), ...
             ', Var = ', num2str(VarCell{modelIter}(stepsIter))], DEBUG);
         MYDEBUG(['      PfTrue = ', num2str(PfTrueCell{modelIter}(stepsIter)), ...

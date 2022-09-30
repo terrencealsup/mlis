@@ -12,7 +12,7 @@ function [ Y, gm ] = drawSamples( M )
 %gm = probObj({{'normal', 2, {mu, sigma}}}); 
 mu = 0.01;
 sigma = 0.00001;
-gm = probObj({{'weibull', 1, {1, 8}}, {'normal', 1, {mu, sigma}}, {'uniform', 1, {-2, 3}},});
+gm = probObj({{'weibull', 1, {1, 8}}, {'uniform', 1, {mu-2*sqrt(sigma), mu+2*sqrt(sigma)}},});
 
 Y = random(gm, M);
 
