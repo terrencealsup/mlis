@@ -4,7 +4,7 @@ merged_o = [];
 merged_Y = [];
 level = 4;
 
-for i=0:999
+for i=0:499
     file_name = sprintf('batchSamples/batchSamples-%d.mat', i);
     load(file_name);
     merged_o = cat(1, merged_o, o);
