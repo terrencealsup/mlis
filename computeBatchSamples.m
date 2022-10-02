@@ -3,6 +3,8 @@ function [] = computeBatchSamples(jobnum)
 
 addpath(genpath('FOM/'));
 
+rng(jobnum);
+
 level = 4;
 M = 1e+3;
 Y = drawSamples(M);
